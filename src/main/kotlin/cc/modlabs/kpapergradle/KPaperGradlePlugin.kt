@@ -26,15 +26,19 @@ class KPaperGradlePlugin : Plugin<Project> {
             it.url = URI.create("https://nexus.modlabs.cc/repository/maven-mirrors/")
         }
 
+        project.extensions.configure(JavaPluginExtension::class.java) { javaExt ->
+            javaExt.toolchain.languageVersion.set(JavaLanguageVersion.of(ext.javaVersion))
+        }
+
+        project.tasks.withType(JavaCompile::class.java).configureEach {
+            it.options.release.set(ext.javaVersion)
+        }
+
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
 
         ext.deliverDependencies.forEach {
             project.dependencies.add("implementation", it)
-        }
-
-        project.extensions.configure(JavaPluginExtension::class.java) { javaExt ->
-            javaExt.toolchain.languageVersion.set(JavaLanguageVersion.of(ext.javaVersion))
         }
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
@@ -71,10 +75,6 @@ class KPaperGradlePlugin : Plugin<Project> {
                     depFile.copyTo(File(resourcesDir, ".dependencies"), overwrite = true)
                 }
             }
-        }
-
-        project.tasks.withType(JavaCompile::class.java).configureEach {
-            it.options.release.set(ext.javaVersion)
         }
     }
 }
