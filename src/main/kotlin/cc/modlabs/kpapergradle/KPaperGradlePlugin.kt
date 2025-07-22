@@ -4,6 +4,10 @@ import cc.modlabs.kpapergradle.internal.KPAPER_VERSION
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.internal.impldep.org.apache.http.client.methods.RequestBuilder.options
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.io.File
 
 open class KPaperExtension {
@@ -23,6 +27,10 @@ class KPaperGradlePlugin : Plugin<Project> {
 
         ext.deliverDependencies.forEach {
             project.dependencies.add("implementation", it)
+        }
+
+        project.extensions.configure(JavaPluginExtension::class.java) { javaExt ->
+            javaExt.toolchain.languageVersion.set(JavaLanguageVersion.of(ext.javaVersion))
         }
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
@@ -59,6 +67,10 @@ class KPaperGradlePlugin : Plugin<Project> {
                     depFile.copyTo(File(resourcesDir, ".dependencies"), overwrite = true)
                 }
             }
+        }
+
+        project.tasks.withType(JavaCompile::class.java).configureEach {
+            it.options.release.set(ext.javaVersion)
         }
     }
 }
