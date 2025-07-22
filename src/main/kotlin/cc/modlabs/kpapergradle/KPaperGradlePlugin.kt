@@ -1,5 +1,7 @@
 package cc.modlabs.kpapergradle
 
+import cc.modlabs.kpapergradle.internal.KPAPER_VERSION
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -16,8 +18,7 @@ class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val ext = project.extensions.create("deliver", KPaperDeliverExtension::class.java)
 
-        val kpaperVersion = System.getenv("KPAPER_VERSION") ?: "2025.7.15.1527"
-        val kpaperCoords = "cc.modlabs:KPaper:$kpaperVersion"
+        val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
