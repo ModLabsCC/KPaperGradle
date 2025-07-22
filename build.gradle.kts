@@ -24,6 +24,26 @@ gradlePlugin {
     }
 }
 
+val kpaperVersion = System.getenv("KPAPER_VERSION") ?: "2025.7.15.1527"
+
+tasks.register("generateKPaperVersion") {
+    val outputDir = file("src/main/kotlin/cc/modlabs/kpapergradle/internal/")
+    inputs.property("kpaperVersion", kpaperVersion)
+    outputs.dir(outputDir)
+    doLast {
+        outputDir.mkdirs()
+        val file = File(outputDir, "KPaperVersion.kt")
+        file.writeText("""
+            package cc.modlabs.kpapergradle.internal
+            const val KPAPER_VERSION = "$kpaperVersion"
+        """.trimIndent())
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn("generateKPaperVersion")
+}
+
 publishing {
     repositories {
         maven {
