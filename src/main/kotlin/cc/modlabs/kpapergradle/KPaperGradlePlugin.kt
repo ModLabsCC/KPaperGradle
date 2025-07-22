@@ -38,7 +38,7 @@ class KPaperGradlePlugin : Plugin<Project> {
         project.dependencies.add("api", kpaperCoords)
 
         ext.deliverDependencies.forEach {
-            project.dependencies.add("implementation", it)
+            project.dependencies.add("api", it)
         }
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
