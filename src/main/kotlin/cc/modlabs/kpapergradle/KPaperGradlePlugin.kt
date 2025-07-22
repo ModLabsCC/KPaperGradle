@@ -34,8 +34,8 @@ class KPaperGradlePlugin : Plugin<Project> {
                 project.dependencies.add("implementation", it)
             }
 
-            project.extensions.configure(JavaPluginExtension::class.java) { javaExt ->
-                javaExt.toolchain.languageVersion.set(JavaLanguageVersion.of(ext.javaVersion))
+            project.extensions.configure(JavaPluginExtension::class.java) {
+                it.toolchain.languageVersion.convention(JavaLanguageVersion.of(ext.javaVersion))
             }
 
             project.tasks.withType(JavaCompile::class.java).configureEach {
