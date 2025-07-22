@@ -16,7 +16,7 @@ class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val ext = project.extensions.create("deliver", KPaperDeliverExtension::class.java)
 
-        val kpaperVersion = "2025.7.15.1527"
+        val kpaperVersion = System.getenv("KPAPER_VERSION") ?: "2025.7.15.1527"
         val kpaperCoords = "cc.modlabs:KPaper:$kpaperVersion"
         project.dependencies.add("api", kpaperCoords)
 
