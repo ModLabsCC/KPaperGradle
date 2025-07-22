@@ -6,9 +6,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.internal.impldep.org.apache.http.client.methods.RequestBuilder.options
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.io.File
+import java.net.URI
 
 open class KPaperExtension {
     val deliverDependencies = mutableListOf<String>()
@@ -21,6 +21,10 @@ open class KPaperExtension {
 class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val ext = project.extensions.create("kpaper", KPaperExtension::class.java)
+
+        project.repositories.maven {
+            it.url = URI.create("https://nexus.modlabs.cc/repository/maven-mirrors/")
+        }
 
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
