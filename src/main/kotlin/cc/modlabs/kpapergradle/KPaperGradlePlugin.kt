@@ -4,20 +4,23 @@ import cc.modlabs.kpapergradle.internal.KPAPER_VERSION
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.io.File
 import java.net.URI
 
-open class KPaperExtension {
+open class KPaperExtension(objects: ObjectFactory) {
     val deliverDependencies = mutableListOf<String>()
-    var javaVersion: Int = 21
+    val javaVersion: Property<Int> = objects.property(Int::class.java).convention(21)
+    fun deliver(vararg deps: String) { deliverDependencies += deps }
 }
 
 class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val ext = project.extensions.create("kpaper", KPaperExtension::class.java)
+        val ext = project.extensions.create("kpaper", KPaperExtension::class.java, project.objects)
 
         project.repositories.maven {
             it.url = URI.create("https://nexus.modlabs.cc/repository/maven-mirrors/")
@@ -26,12 +29,14 @@ class KPaperGradlePlugin : Plugin<Project> {
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
 
-        ext.deliverDependencies.forEach {
-            project.dependencies.add("implementation", it)
+        project.afterEvaluate {
+            ext.deliverDependencies.forEach {
+                project.dependencies.add("implementation", it)
+            }
         }
 
-        project.extensions.configure(JavaPluginExtension::class.java) {
-            it.toolchain.languageVersion.convention(JavaLanguageVersion.of(ext.javaVersion))
+        project.extensions.configure(JavaPluginExtension::class.java) { jext ->
+            jext.toolchain.languageVersion.set(ext.javaVersion.map { JavaLanguageVersion.of(it) })
         }
 
         project.tasks.withType(JavaCompile::class.java).configureEach {
