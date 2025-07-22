@@ -14,17 +14,14 @@ open class KPaperDeliverExtension {
 
 class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        // Extension for users to deliver more dependencies if needed
         val ext = project.extensions.create("deliver", KPaperDeliverExtension::class.java)
 
-        // Always add KPaper
         val kpaperVersion = "2025.7.15.1527"
         val kpaperCoords = "cc.modlabs:KPaper:$kpaperVersion"
         project.dependencies.add("api", kpaperCoords)
 
-        // Register and configure generation task
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
-        val generateDeps = generateDepsTask.get() // <-- GET THE REAL TASK!
+        val generateDeps = generateDepsTask.get()
 
         generateDeps.group = "build"
         generateDeps.description = "Generates .dependencies file for delivery/compliance"
@@ -47,11 +44,9 @@ class KPaperGradlePlugin : Plugin<Project> {
             depFile.writeText(delivered.joinToString("\n"))
         }
 
-        // Configure processResources task (if exists)
         project.tasks.matching { it.name == "processResources" }.all { task ->
             task.dependsOn(generateDeps)
             task.doLast {
-                // Actually copy into resources
                 val depFile = File(project.layout.buildDirectory.asFile.get(), "generated-resources/.dependencies")
                 val resourcesDir = File(project.layout.buildDirectory.asFile.get(), "resources/main")
                 if (depFile.exists()) {
