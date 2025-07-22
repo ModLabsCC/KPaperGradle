@@ -4,22 +4,26 @@ import cc.modlabs.kpapergradle.internal.KPAPER_VERSION
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import java.io.File
 
-open class KPaperDeliverExtension {
+open class KPaperExtension {
     val deliverDependencies = mutableListOf<String>()
     fun deliver(vararg deps: String) {
         deliverDependencies += deps
     }
+    var javaVersion: Int = 21
 }
 
 class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val ext = project.extensions.create("deliver", KPaperDeliverExtension::class.java)
+        val ext = project.extensions.create("kpaper", KPaperExtension::class.java)
 
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
+
+        ext.deliverDependencies.forEach {
+            project.dependencies.add("implementation", it)
+        }
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
         val generateDeps = generateDepsTask.get()
