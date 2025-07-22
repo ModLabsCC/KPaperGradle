@@ -12,9 +12,6 @@ import java.net.URI
 
 open class KPaperExtension {
     val deliverDependencies = mutableListOf<String>()
-    fun deliver(vararg deps: String) {
-        deliverDependencies += deps
-    }
     var javaVersion: Int = 21
 }
 
@@ -29,18 +26,16 @@ class KPaperGradlePlugin : Plugin<Project> {
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
         project.dependencies.add("api", kpaperCoords)
 
-        project.afterEvaluate {
-            ext.deliverDependencies.forEach {
-                project.dependencies.add("implementation", it)
-            }
+        ext.deliverDependencies.forEach {
+            project.dependencies.add("implementation", it)
+        }
 
-            project.extensions.configure(JavaPluginExtension::class.java) {
-                it.toolchain.languageVersion.convention(JavaLanguageVersion.of(ext.javaVersion))
-            }
+        project.extensions.configure(JavaPluginExtension::class.java) {
+            it.toolchain.languageVersion.convention(JavaLanguageVersion.of(ext.javaVersion))
+        }
 
-            project.tasks.withType(JavaCompile::class.java).configureEach {
-                it.options.release.set(ext.javaVersion)
-            }
+        project.tasks.withType(JavaCompile::class.java).configureEach {
+            it.options.release.set(ext.javaVersion)
         }
 
         val generateDepsTask = project.tasks.register("generateDependenciesFile")
