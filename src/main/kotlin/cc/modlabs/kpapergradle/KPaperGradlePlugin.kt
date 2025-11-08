@@ -236,42 +236,47 @@ class KPaperGradlePlugin : Plugin<Project> {
                     """.trimIndent()
                 )
 
-                // DependencyLoader (Kotlin)
-                val dependencyLoader = File(basePkg, "DependencyLoader.kt")
+                // DependencyLoader (Java) - must not rely on Kotlin runtime
+                val dependencyLoader = File(basePkg, "DependencyLoader.java")
                 dependencyLoader.writeText(
                     """
-                    package cc.modlabs.registration
+                    package cc.modlabs.registration;
                     
-                    import io.papermc.paper.plugin.loader.PluginClasspathBuilder
-                    import io.papermc.paper.plugin.loader.PluginLoader
-                    import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver
-                    import org.eclipse.aether.artifact.DefaultArtifact
-                    import org.eclipse.aether.graph.Dependency
-                    import org.eclipse.aether.repository.RemoteRepository
-                    import java.io.BufferedReader
-                    import java.io.InputStreamReader
-                    import java.util.Objects
-                    import java.util.logging.Level
-                    import java.util.logging.Logger
+                    import io.papermc.paper.plugin.loader.PluginClasspathBuilder;
+                    import io.papermc.paper.plugin.loader.PluginLoader;
+                    import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;
+                    import org.eclipse.aether.artifact.DefaultArtifact;
+                    import org.eclipse.aether.graph.Dependency;
+                    import org.eclipse.aether.repository.RemoteRepository;
                     
-                    @Suppress("UnstableApiUsage")
-                    class DependencyLoader : PluginLoader {
-                        companion object { private val LOGGER: Logger = Logger.getLogger(DependencyLoader::class.java.name) }
+                    import java.io.BufferedReader;
+                    import java.io.InputStreamReader;
+                    import java.util.Objects;
+                    import java.util.logging.Level;
+                    import java.util.logging.Logger;
                     
-                        override fun classloader(classpathBuilder: PluginClasspathBuilder) {
-                            val maven = MavenLibraryResolver()
-                            try {
-                                BufferedReader(InputStreamReader(Objects.requireNonNull(javaClass.classLoader.getResourceAsStream(".dependencies")))).use { reader ->
-                                    reader.lines().forEach { dependency ->
-                                        LOGGER.log(Level.INFO, "Adding dependency: ${'$'}dependency")
-                                        maven.addDependency(Dependency(DefaultArtifact(dependency), null))
-                                    }
-                                    maven.addRepository(RemoteRepository.Builder("modlabs", "default", "https://nexus.modlabs.cc/repository/maven-mirrors/").build())
-                                }
-                            } catch (e: Exception) {
-                                LOGGER.log(Level.SEVERE, "Failed to load dependencies", e)
+                    @SuppressWarnings("UnstableApiUsage")
+                    public class DependencyLoader implements PluginLoader {
+                    
+                        private static final Logger LOGGER = Logger.getLogger(DependencyLoader.class.getName());
+                    
+                        @Override
+                        public void classloader(PluginClasspathBuilder classpathBuilder) {
+                            MavenLibraryResolver maven = new MavenLibraryResolver();
+                    
+                            try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                                    Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(".dependencies"))))) {
+                                reader.lines().forEach(dependency -> {
+                                    LOGGER.log(Level.INFO, "Adding dependency: " + dependency);
+                                    maven.addDependency(new Dependency(new DefaultArtifact(dependency), null));
+                                });
+                    
+                                maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://nexus.modlabs.cc/repository/maven-mirrors/").build());
+                            } catch (Exception e) {
+                                LOGGER.log(Level.SEVERE, "Failed to load dependencies", e);
                             }
-                            classpathBuilder.addLibrary(maven)
+                    
+                            classpathBuilder.addLibrary(maven);
                         }
                     }
                     """.trimIndent()
