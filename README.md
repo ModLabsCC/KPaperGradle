@@ -95,8 +95,10 @@ api-version: '1.21'
 Note: Commands are auto-registered by the plugin. Listeners are discovered but you must register them manually in your plugin's enable phase:
 
 ```kotlin
-class MyPlugin : org.bukkit.plugin.java.JavaPlugin() {
-    override fun onEnable() {
+import cc.modlabs.kpaper.main.KPlugin
+
+class MyPlugin : KPlugin() {
+    override fun startup() {
         cc.modlabs.registration.RegisterManager.registerListeners(this)
     }
 }
