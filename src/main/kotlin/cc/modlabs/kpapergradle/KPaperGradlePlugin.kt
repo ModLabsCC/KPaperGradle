@@ -19,7 +19,23 @@ open class KPaperExtension(objects: ObjectFactory) {
     val javaVersion: Property<Int> = objects.property(Int::class.java).convention(21)
     // Base package used by RegisterManager to scan for commands/listeners
     val registrationBasePackage: Property<String> = objects.property(String::class.java).convention("cc.modlabs")
+
+    // Custom repositories for the runtime dependency loader (MavenLibraryResolver)
+    internal val customRepositories = mutableListOf<Pair<String, String>>() // id to url
+
     fun deliver(vararg deps: String) { deliverDependencies += deps }
+
+    // DSL: repository("https://repo1.maven.org/maven2/")
+    fun repository(url: String) {
+        val host = try { java.net.URI(url).host ?: url } catch (_: Exception) { url }
+        val id = host.replace(Regex("[^a-zA-Z0-9-_]"), "-")
+        customRepositories += id to url
+    }
+
+    // DSL: repository("myRepo", "https://repo.example.com/maven/")
+    fun repository(id: String, url: String) {
+        customRepositories += id to url
+    }
 }
 
 class KPaperGradlePlugin : Plugin<Project> {
@@ -66,9 +82,20 @@ class KPaperGradlePlugin : Plugin<Project> {
                         }
                 }
             delivered += ext.deliverDependencies
-            val depFile = File(project.layout.buildDirectory.asFile.get(), "generated-resources/.dependencies")
-            depFile.parentFile.mkdirs()
+            val buildDir = project.layout.buildDirectory.asFile.get()
+            val genResDir = File(buildDir, "generated-resources")
+            genResDir.mkdirs()
+            val depFile = File(genResDir, ".dependencies")
             depFile.writeText(delivered.joinToString("\n"))
+
+            // Write repositories file for the runtime dependency loader
+            val reposFile = File(genResDir, ".repositories")
+            if (ext.customRepositories.isNotEmpty()) {
+                val lines = ext.customRepositories.map { (id, url) -> "$id $url" }
+                reposFile.writeText(lines.joinToString("\n"))
+            } else {
+                if (reposFile.exists()) reposFile.delete()
+            }
         }
 
         project.tasks.matching { it.name == "processResources" }.all { task ->
@@ -76,10 +103,14 @@ class KPaperGradlePlugin : Plugin<Project> {
             task.doLast {
                 val buildDir = project.layout.buildDirectory.asFile.get()
                 val depFile = File(buildDir, "generated-resources/.dependencies")
+                val reposFile = File(buildDir, "generated-resources/.repositories")
                 val resourcesDir = File(buildDir, "resources/main")
+                resourcesDir.mkdirs()
                 if (depFile.exists()) {
-                    resourcesDir.mkdirs()
                     depFile.copyTo(File(resourcesDir, ".dependencies"), overwrite = true)
+                }
+                if (reposFile.exists()) {
+                    reposFile.copyTo(File(resourcesDir, ".repositories"), overwrite = true)
                 }
 
                 // Patch paper-plugin.yml to add loader/bootstrapper if they are not set
