@@ -302,7 +302,44 @@ class KPaperGradlePlugin : Plugin<Project> {
                                     maven.addDependency(new Dependency(new DefaultArtifact(dependency), null));
                                 });
                     
+                                // Add default ModLabs mirror
                                 maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://nexus.modlabs.cc/repository/maven-mirrors/").build());
+
+                                // Add custom repositories from optional .repositories resource
+                                try {
+                                    java.io.InputStream reposStream = getClass().getClassLoader().getResourceAsStream(".repositories");
+                                    if (reposStream != null) {
+                                        try (BufferedReader r = new BufferedReader(new InputStreamReader(reposStream))) {
+                                            r.lines().forEach(line -> {
+                                                String trimmed = line.trim();
+                                                if (trimmed.isEmpty() || trimmed.startsWith("#")) return;
+                                                String id;
+                                                String url;
+                                                String[] parts = trimmed.split("\\s+", 2);
+                                                if (parts.length == 2) {
+                                                    id = parts[0];
+                                                    url = parts[1];
+                                                } else {
+                                                    url = trimmed;
+                                                    try {
+                                                        java.net.URI u = java.net.URI.create(url);
+                                                        String host = u.getHost();
+                                                        id = host != null ? host.replaceAll("[^a-zA-Z0-9-_]", "-") : Integer.toString(url.hashCode());
+                                                    } catch (Exception ex) {
+                                                        id = Integer.toString(url.hashCode());
+                                                    }
+                                                }
+                                                try {
+                                                    maven.addRepository(new RemoteRepository.Builder(id, "default", url).build());
+                                                } catch (Exception ex) {
+                                                    LOGGER.log(Level.WARNING, "Failed to add repository: " + trimmed, ex);
+                                                }
+                                            });
+                                        }
+                                    }
+                                } catch (Exception ex) {
+                                    LOGGER.log(Level.WARNING, "Failed to read .repositories", ex);
+                                }
                             } catch (Exception e) {
                                 LOGGER.log(Level.SEVERE, "Failed to load dependencies", e);
                             }
