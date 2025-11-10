@@ -9,7 +9,7 @@
 
 *A Gradle plugin that streamlines using KPaper in your PaperMC plugins*
 
-[🚀 Quick Start](#-quick-start) • [✨ Features](#-key-features) • [🧩 How-It-Works](#-how-it-works) • [🛠 configuration](#-configuration) • [🤝 Contributing](#-contributing)
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-key-features) • [🧩 How-It-Works](#-how-it-works) • [🛠 configuration](#-configuration) • [🌐 Custom Repos](#-custom-repositories-for-dependency-delivery) • [🤝 Contributing](#-contributing)
 
 </div>
 
@@ -26,6 +26,7 @@ KPaperGradle automates integrating [KPaper](https://github.com/ModLabsCC/KPaper)
 - **🧩 Paper integration** — Patches `paper-plugin.yml` to include `loader` and `bootstrapper` if missing
 - **📚 Convention‑based registration** — Auto‑registers commands; discovers listeners (manual call required)
 - **🚚 Deliver extra libs** — Simple `deliver("group:artifact:version")` DSL for runtime libraries
+- **🌐 Custom repos for delivery** — Add Maven repositories used by the runtime dependency loader via `repository(...)` DSL
 
 ## 🚀 Quick Start
 
@@ -68,6 +69,12 @@ kpaper {
     deliver(
         "com.github.ben-manes.caffeine:caffeine:3.1.8"
     )
+
+    // Optional: Repositories used by the runtime dependency loader
+    // Either with generated id from host:
+    repository("https://repo1.maven.org/maven2/")
+    // Or explicitly provide an id and url:
+    repository("papermc", "https://repo.papermc.io/repository/maven-public/")
 }
 ```
 
@@ -149,20 +156,46 @@ KPaperGradle wires a few build steps into your project:
   - `RegisterManager` — scans your `registrationBasePackage` for `CommandBuilder` and `Listener` classes
   - `DependencyLoader` — resolves and attaches declared libraries at runtime via Paper's `MavenLibraryResolver`
 - Registration behavior: Commands are auto-registered; listeners are discovered but must be registered manually via `RegisterManager.registerListeners(plugin)`
-- Creates `.dependencies` under `build/generated-resources/` and copies it into `build/resources/main/`
+- Creates `.dependencies` under `build/generated-resources/` and copies it into `build/resources/main/`. If you declare custom repositories, also creates `.repositories` and copies it alongside
 - Patches `paper-plugin.yml` to add `loader` and `bootstrapper` if missing
 - Adds `cc.modlabs:KPaper:<version>` to the `api` configuration
 - Ensures Java/Kotlin compilation depends on the generation task and sees the generated sources
 
 ## 🔧 Configuration
 
-The `kpaper` extension exposes the following properties:
+The `kpaper` extension exposes the following properties and DSL helpers:
 
 - `javaVersion: Property<Int>` — Java toolchain and `--release` (default `21`)
 - `registrationBasePackage: Property<String>` — base package to scan (default `"cc.modlabs"`)
 - `deliver(vararg deps: String)` — declare runtime libraries, e.g. `deliver("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")`
+- `repository(url: String)` — add a Maven repository used by the runtime dependency loader; an id is inferred from the URL host
+- `repository(id: String, url: String)` — same as above but with an explicit id
 
-Environment variables (for building this Gradle plugin itself):
+Notes:
+- These repositories are used only by the generated runtime loader (`MavenLibraryResolver`) to resolve delivered libraries on the server. They do not affect Gradle resolution.
+- The ModLabs mirror `https://nexus.modlabs.cc/repository/maven-mirrors/` is always added by default.
+
+## 🌐 Custom repositories for dependency delivery
+
+You can declare additional Maven repositories that the runtime dependency loader will use when resolving libraries from your `deliver(...)` block. Example:
+
+```kotlin
+kpaper {
+    deliver("com.squareup.okio:okio:3.9.0")
+
+    // Add Maven Central explicitly (id inferred from host)
+    repository("https://repo1.maven.org/maven2/")
+
+    // Add PaperMC public repository with a custom id
+    repository("papermc", "https://repo.papermc.io/repository/maven-public/")
+}
+```
+
+Under the hood, the plugin writes a `.repositories` file next to `.dependencies` in your built resources. The generated runtime `DependencyLoader` reads this file and appends each entry to the `MavenLibraryResolver`.
+
+Accepted `.repositories` line formats:
+- `url` (id inferred from host), e.g. `https://repo1.maven.org/maven2/`
+- `id url`, e.g. `papermc https://repo.papermc.io/repository/maven-public/`
 
 - `KPAPER_VERSION` — pinned KPaper version embedded into the plugin (falls back to a timestamped default)
 - `VERSION_OVERRIDE` — override the plugin’s published version
