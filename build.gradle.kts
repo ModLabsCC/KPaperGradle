@@ -4,6 +4,7 @@ plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm") version "2.0.0"
     id("maven-publish")
+    id("org.sonarqube") version "7.0.1.6134"
 }
 
 group = "cc.modlabs"
@@ -13,6 +14,13 @@ version = System.getenv("VERSION_OVERRIDE") ?: Calendar.getInstance(TimeZone.get
 
 repositories {
     maven("https://nexus.modlabs.cc/repository/maven-mirrors/")
+}
+
+sonar {
+  properties {
+    property("sonar.projectKey", "ModLabsCC_KPaperGradle_5b731dbd-626d-43e3-b648-616dcd538d04")
+    property("sonar.projectName", "KPaperGradle")
+  }
 }
 
 gradlePlugin {
