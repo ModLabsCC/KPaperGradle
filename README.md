@@ -37,7 +37,7 @@ Add the plugin to your Paper plugin project.
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://nexus.modlabs.cc/repository/maven-public/")
+        maven("https://repo-api.modlabs.cc/repo/maven/maven-mirror/")
         mavenLocal()
     }
 }
@@ -55,7 +55,7 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    maven("https://nexus.modlabs.cc/repository/maven-mirrors/")
+    maven("https://repo-api.modlabs.cc/repo/maven/maven-mirror/")
 }
 
 kpaper {
@@ -173,7 +173,7 @@ The `kpaper` extension exposes the following properties and DSL helpers:
 
 Notes:
 - These repositories are used only by the generated runtime loader (`MavenLibraryResolver`) to resolve delivered libraries on the server. They do not affect Gradle resolution.
-- The ModLabs mirror `https://nexus.modlabs.cc/repository/maven-mirrors/` is always added by default.
+- The ModLabs mirror `https://repo-api.modlabs.cc/repo/maven/maven-mirror/` is always added by default.
 
 ## 🌐 Custom repositories for dependency delivery
 

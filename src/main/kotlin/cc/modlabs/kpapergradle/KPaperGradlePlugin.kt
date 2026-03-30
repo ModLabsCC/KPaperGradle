@@ -43,7 +43,7 @@ class KPaperGradlePlugin : Plugin<Project> {
         val ext = project.extensions.create("kpaper", KPaperExtension::class.java, project.objects)
 
         project.repositories.maven {
-            it.url = URI.create("https://nexus.modlabs.cc/repository/maven-mirrors/")
+            it.url = URI.create("https://repo-api.modlabs.cc/repo/maven/maven-mirror/")
         }
 
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
@@ -303,7 +303,7 @@ class KPaperGradlePlugin : Plugin<Project> {
                                 });
                     
                                 // Add default ModLabs mirror
-                                maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://nexus.modlabs.cc/repository/maven-mirrors/").build());
+                                maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://repo-api.modlabs.cc/repo/maven/maven-mirror/").build());
 
                                 // Add custom repositories from optional .repositories resource
                                 try {
