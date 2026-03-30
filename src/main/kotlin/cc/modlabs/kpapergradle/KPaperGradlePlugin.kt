@@ -182,9 +182,9 @@ class KPaperGradlePlugin : Plugin<Project> {
                     """
                     package cc.modlabs.registration
                     
+                    import cc.modlabs.klassicx.extensions.getLogger
                     import cc.modlabs.kpaper.command.CommandBuilder
                     import com.google.common.reflect.ClassPath
-                    import dev.fruxz.ascend.extension.logging.getFactoryLogger
                     import io.papermc.paper.command.brigadier.Commands
                     import org.bukkit.Bukkit
                     import org.bukkit.event.Listener
@@ -194,7 +194,7 @@ class KPaperGradlePlugin : Plugin<Project> {
                     
                     object RegisterManager {
                     
-                        private val logger = getFactoryLogger(RegisterManager::class)
+                        private val logger = getLogger()
                         private const val PACKAGE_NAME = "${scanBase.replace("\"","\\\"")}"
                     
                         private fun <T : Any, E : Any> E.loadClassesInPackage(
