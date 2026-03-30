@@ -35,7 +35,7 @@ jobs:
         run: ./gradlew publish
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
-          NEXUS_PASS: ${{ secrets.NEXUS_PASS }}
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
           KPAPER_VERSION: ${{ inputs.kpaper_version }}
           VERSION_OVERRIDE: "${{ env.VERSION }}+kpaper.${{ inputs.kpaper_version }}"
 
