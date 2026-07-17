@@ -64,32 +64,31 @@ publishing {
         }
         mavenLocal()
     }
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-
-            pom {
-                name.set("KPaperGradle")
-                description.set("Gradle plugin for automatically integrating and delivering KPaper in PaperMC plugin projects.")
+    // java-gradle-plugin already creates pluginMaven + plugin marker publications.
+    // Do not add a second "maven" publication from components["java"] — same coordinates
+    // cause overwrite warnings and a 409 Conflict on ModLabs.
+    publications.withType<MavenPublication>().configureEach {
+        pom {
+            name.set("KPaperGradle")
+            description.set("Gradle plugin for automatically integrating and delivering KPaper in PaperMC plugin projects.")
+            url.set("https://github.com/ModLabsCC/KPaperGradle")
+            licenses {
+                license {
+                    name.set("GPL-3.0")
+                    url.set("https://github.com/ModLabsCC/KPaperGradle/blob/main/LICENSE")
+                }
+            }
+            developers {
+                developer {
+                    id.set("ModLabsCC")
+                    name.set("ModLabsCC")
+                    email.set("contact@modlabs.cc")
+                }
+            }
+            scm {
+                connection.set("scm:git:git://github.com/ModLabsCC/KPaperGradle.git")
+                developerConnection.set("scm:git:git@github.com:ModLabsCC/KPaperGradle.git")
                 url.set("https://github.com/ModLabsCC/KPaperGradle")
-                licenses {
-                    license {
-                        name.set("GPL-3.0")
-                        url.set("https://github.com/ModLabsCC/KPaperGradle/blob/main/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("ModLabsCC")
-                        name.set("ModLabsCC")
-                        email.set("contact@modlabs.cc")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/ModLabsCC/KPaperGradle.git")
-                    developerConnection.set("scm:git:git@github.com:ModLabsCC/KPaperGradle.git")
-                    url.set("https://github.com/ModLabsCC/KPaperGradle")
-                }
             }
         }
     }
