@@ -16,7 +16,7 @@ import java.net.URI
 
 open class KPaperExtension(objects: ObjectFactory) {
     val deliverDependencies = mutableListOf<String>()
-    val javaVersion: Property<Int> = objects.property(Int::class.java).convention(21)
+    val javaVersion: Property<Int> = objects.property(Int::class.java).convention(25)
     // Base package used by RegisterManager to scan for commands/listeners
     val registrationBasePackage: Property<String> = objects.property(String::class.java).convention("cc.modlabs")
 
@@ -42,8 +42,12 @@ class KPaperGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val ext = project.extensions.create("kpaper", KPaperExtension::class.java, project.objects)
 
+        project.repositories.mavenCentral()
         project.repositories.maven {
-            it.url = URI.create("https://repo-api.modlabs.cc/repo/maven/maven-mirror/")
+            it.url = URI.create("https://repo-api.modlabs.cc/repo/maven/maven-public/")
+        }
+        project.repositories.maven {
+            it.url = URI.create("https://repo.codemc.io/repository/maven-snapshots/")
         }
 
         val kpaperCoords = "cc.modlabs:KPaper:$KPAPER_VERSION"
@@ -302,8 +306,9 @@ class KPaperGradlePlugin : Plugin<Project> {
                                     maven.addDependency(new Dependency(new DefaultArtifact(dependency), null));
                                 });
                     
-                                // Add default ModLabs mirror
-                                maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://repo-api.modlabs.cc/repo/maven/maven-mirror/").build());
+                                maven.addRepository(new RemoteRepository.Builder("modlabs", "default", "https://repo-api.modlabs.cc/repo/maven/maven-public/").build());
+                                maven.addRepository(new RemoteRepository.Builder("maven-central", "default", "https://repo.maven.apache.org/maven2/").build());
+                                maven.addRepository(new RemoteRepository.Builder("codemc-snapshots", "default", "https://repo.codemc.io/repository/maven-snapshots/").build());
 
                                 // Add custom repositories from optional .repositories resource
                                 try {
