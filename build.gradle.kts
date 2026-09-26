@@ -13,7 +13,8 @@ version = System.getenv("VERSION_OVERRIDE") ?: Calendar.getInstance(TimeZone.get
 }
 
 repositories {
-    mavenCentral()
+    maven("https://repo-api.modlabs.cc/repo/maven/maven-mirror/")
+    gradlePluginPortal()
 }
 
 sonar {
